@@ -1,0 +1,26 @@
+# Student Port Assignment File
+# Format: login_id,segment1_start,segment1_end,segment2_start,segment2_end
+# 
+# Notes:
+# - Use exact Linux login IDs (case-sensitive)
+# - Current convention: All student IDs start with uppercase letter
+# - Port segments support flexible allocation:
+#   - One segment: continuous range (e.g., 4000-4200)
+#   - Two segments: non-continuous ranges (e.g., 4000-4100 and 8000-8100)
+# - segment2 columns can be empty for single-segment allocation
+#
+# Examples:
+#   Emma,4000,4100,8000,8100     # Two segments: 4000-4100 and 8000-8100
+#   Sue,4901,5100,,              # Single segment: 4901-5100
+#   TestUser,5200,5250,6000,6050 # Two non-continuous segments
+
+Emma,4000,4100,8000,8100
+Rick,4101,4200,8101,8200
+Tao,4201,4300,8201,8300
+Eric,4301,4400,8301,8400
+Alex,4401,4500,8401,8500
+Lee,4501,4600,8501,8600
+Harry,4601,4700,8601,8700
+Joy,4701,4800,8701,8800
+Ethan,4801,4900,8801,8900
+Sue,4901,5100,,

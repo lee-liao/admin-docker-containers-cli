@@ -1,0 +1,115 @@
+{
+  "verification_timestamp": "2025-10-12T21:53:43.947796",
+  "allocation_report": {
+    "metadata": {
+      "version": "v1.0",
+      "created_at": "2025-10-12T21:53:43.947796",
+      "total_assignments": 10
+    },
+    "statistics": {
+      "total_students": 10,
+      "total_ports_allocated": 2002,
+      "single_segment_assignments": 1,
+      "dual_segment_assignments": 9,
+      "min_ports_per_student": 200,
+      "max_ports_per_student": 202,
+      "avg_ports_per_student": 200.2
+    },
+    "port_ranges": {
+      "min_port": 4000,
+      "max_port": 8900,
+      "total_unique_ports": 2002,
+      "gaps": [
+        {
+          "start": 5101,
+          "end": 7999,
+          "size": 2899
+        }
+      ],
+      "largest_gap": {
+        "start": 5101,
+        "end": 7999,
+        "size": 2899
+      }
+    },
+    "assignments": [
+      {
+        "login_id": "Alex",
+        "segment1": "4401-4500",
+        "segment2": "8401-8500",
+        "total_ports": 200,
+        "is_continuous": false
+      },
+      {
+        "login_id": "Emma",
+        "segment1": "4000-4100",
+        "segment2": "8000-8100",
+        "total_ports": 202,
+        "is_continuous": false
+      },
+      {
+        "login_id": "Eric",
+        "segment1": "4301-4400",
+        "segment2": "8301-8400",
+        "total_ports": 200,
+        "is_continuous": false
+      },
+      {
+        "login_id": "Ethan",
+        "segment1": "4801-4900",
+        "segment2": "8801-8900",
+        "total_ports": 200,
+        "is_continuous": false
+      },
+      {
+        "login_id": "Harry",
+        "segment1": "4601-4700",
+        "segment2": "8601-8700",
+        "total_ports": 200,
+        "is_continuous": false
+      },
+      {
+        "login_id": "Joy",
+        "segment1": "4701-4800",
+        "segment2": "8701-8800",
+        "total_ports": 200,
+        "is_continuous": false
+      },
+      {
+        "login_id": "Lee",
+        "segment1": "4501-4600",
+        "segment2": "8501-8600",
+        "total_ports": 200,
+        "is_continuous": false
+      },
+      {
+        "login_id": "Rick",
+        "segment1": "4101-4200",
+        "segment2": "8101-8200",
+        "total_ports": 200,
+        "is_continuous": false
+      },
+      {
+        "login_id": "Sue",
+        "segment1": "4901-5100",
+        "segment2": null,
+        "total_ports": 200,
+        "is_continuous": true
+      },
+      {
+        "login_id": "Tao",
+        "segment1": "4201-4300",
+        "segment2": "8201-8300",
+        "total_ports": 200,
+        "is_continuous": false
+      }
+    ]
+  },
+  "port_conflicts": {},
+  "case_sensitivity_issues": [],
+  "summary": {
+    "file_valid": true,
+    "total_conflicts": 0,
+    "total_case_issues": 0
+  }
+}

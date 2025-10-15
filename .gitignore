@@ -1,0 +1,32 @@
+# Admin CLI - Git Ignore
+
+# Python
+__pycache__/
+*.py[cod]
+*.class
+*.so
+.Python
+env/
+venv/
+.venv/
+
+# Admin specific
+*.log
+*.tmp
+.admin_cache/
+
+# Security - Never commit these
+student-port-assignments-*.enc
+*.key
+*.pem
+admin-secrets/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
