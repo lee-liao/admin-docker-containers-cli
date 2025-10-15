@@ -1,32 +1,36 @@
-# Admin CLI - Git Ignore
+# Admin CLI Distribution - Git Ignore
+# This is for the DISTRIBUTION, not development
 
-# Python
+# Python runtime
 __pycache__/
 *.py[cod]
-*.class
-*.so
+*.pyc
+*.pyo
+*.pyd
 .Python
+
+# Virtual environments
 env/
 venv/
 .venv/
+ENV/
 
-# Admin specific
+# Admin runtime artifacts
 *.log
 *.tmp
 .admin_cache/
+logs/
 
-# Security - Never commit these
-student-port-assignments-*.enc
-*.key
-*.pem
-admin-secrets/
-
-# IDE
+# IDE files
 .vscode/
 .idea/
 *.swp
 *.swo
 
-# OS
+# OS files
 .DS_Store
 Thumbs.db
+.directory
+
+# Note: student-port-assignments-*.enc is INCLUDED as it's required for admin CLI functionality
+# The data is encrypted and safe to distribute with the admin tools

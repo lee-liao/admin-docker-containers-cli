@@ -21,11 +21,11 @@ python admin-cli.py list-students
 # Check specific student's ports
 python admin-cli.py check-ports Alex
 
-# Find which student owns a specific port
-python admin-cli.py find-port 4501
-
 # Show system status
 python admin-cli.py system-status
+
+# Run security validation
+python admin-cli.py security-check
 ```
 
 ## 📋 Available Commands
@@ -33,7 +33,6 @@ python admin-cli.py system-status
 ### Student Management
 - **list-students** - List all students and their port assignments
 - **check-ports <student_id>** - Check specific student's port assignment
-- **find-port <port_number>** - Find which student owns a specific port
 
 ### System Administration  
 - **system-status** - Show overall system status and statistics
