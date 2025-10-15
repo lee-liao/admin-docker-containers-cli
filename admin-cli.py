@@ -9,9 +9,15 @@ import os
 import sys
 import argparse
 import json
+import re
+import glob
 from datetime import datetime
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.backends import default_backend
+try:
+    import yaml
+except ImportError:
+    yaml = None
 
 class SimplePortAssignmentManager:
     """Simple port assignment manager for admin CLI"""
@@ -234,6 +240,210 @@ class AdminCLI:
         
         print(f"🕒 System Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     
+    def scan_port_usage(self, detailed=False):
+        """Scan actual port usage from dockeredServices directories"""
+        print("\n🔍 Scanning Port Usage Across All Students")
+        print("=" * 50)
+        
+        if not self.load_port_assignments():
+            return
+        
+        # Get all assignments for reference
+        assignments = {a.login_id: a for a in self.port_manager.list_all_assignments()}
+        
+        # Scan home directories for dockeredServices
+        usage_data = {}
+        total_used_ports = 0
+        total_allocated_ports = 0
+        
+        # Look for dockeredServices directories in common locations
+        search_paths = [
+            "/home/*/dockeredServices",
+            "/Users/*/dockeredServices",  # macOS
+            "C:/Users/*/dockeredServices"  # Windows
+        ]
+        
+        found_students = set()
+        
+        for search_path in search_paths:
+            for dockered_path in glob.glob(search_path):
+                # Extract username from path
+                username = dockered_path.split(os.sep)[-2]
+                
+                if username in assignments:
+                    found_students.add(username)
+                    assignment = assignments[username]
+                    
+                    # Scan projects in this student's directory
+                    projects = self._scan_student_projects(dockered_path)
+                    used_ports = set()
+                    
+                    for project_name, project_ports in projects.items():
+                        used_ports.update(project_ports)
+                    
+                    usage_data[username] = {
+                        'assignment': assignment,
+                        'projects': projects,
+                        'used_ports': sorted(used_ports),
+                        'allocated_ports': assignment.all_ports,
+                        'dockered_path': dockered_path
+                    }
+                    
+                    total_used_ports += len(used_ports)
+                    total_allocated_ports += assignment.total_ports
+        
+        # Display results
+        if not usage_data:
+            print("❌ No dockeredServices directories found")
+            print("   Searched paths:")
+            for path in search_paths:
+                print(f"   - {path}")
+            return
+        
+        print(f"📁 Found {len(usage_data)} active students")
+        print(f"🔌 Total ports used: {total_used_ports}")
+        print(f"📊 Total ports allocated: {total_allocated_ports}")
+        print(f"📈 Usage rate: {(total_used_ports/total_allocated_ports*100):.1f}%")
+        print()
+        
+        # Show per-student breakdown
+        for username in sorted(usage_data.keys()):
+            data = usage_data[username]
+            assignment = data['assignment']
+            used_count = len(data['used_ports'])
+            allocated_count = assignment.total_ports
+            usage_pct = (used_count / allocated_count * 100) if allocated_count > 0 else 0
+            
+            print(f"👤 {username}")
+            print(f"   📁 Path: {data['dockered_path']}")
+            print(f"   📊 Usage: {used_count}/{allocated_count} ports ({usage_pct:.1f}%)")
+            print(f"   📋 Projects: {len(data['projects'])}")
+            
+            if detailed:
+                # Show project details
+                for project_name, project_ports in data['projects'].items():
+                    print(f"      🔸 {project_name}: {len(project_ports)} ports")
+                    if project_ports:
+                        port_ranges = self._format_port_ranges(project_ports)
+                        print(f"         Ports: {port_ranges}")
+                
+                # Check for port violations
+                violations = []
+                for port in data['used_ports']:
+                    if port not in assignment.all_ports:
+                        violations.append(port)
+                
+                if violations:
+                    print(f"   ⚠️  Port violations: {violations}")
+            
+            print()
+        
+        # Show students with assignments but no active usage
+        inactive_students = set(assignments.keys()) - found_students
+        if inactive_students:
+            print(f"💤 Inactive students ({len(inactive_students)}):")
+            for username in sorted(inactive_students):
+                assignment = assignments[username]
+                print(f"   👤 {username} ({assignment.total_ports} ports allocated)")
+    
+    def _scan_student_projects(self, dockered_path):
+        """Scan a student's dockeredServices directory for projects and ports"""
+        projects = {}
+        
+        if not os.path.exists(dockered_path):
+            return projects
+        
+        # Look for docker-compose.yml files in subdirectories
+        for item in os.listdir(dockered_path):
+            project_path = os.path.join(dockered_path, item)
+            if os.path.isdir(project_path):
+                compose_file = os.path.join(project_path, 'docker-compose.yml')
+                if os.path.exists(compose_file):
+                    ports = self._extract_ports_from_compose(compose_file)
+                    if ports:
+                        projects[item] = ports
+        
+        return projects
+    
+    def _extract_ports_from_compose(self, compose_file):
+        """Extract host ports from docker-compose.yml file"""
+        ports = []
+        
+        try:
+            with open(compose_file, 'r') as f:
+                content = f.read()
+            
+            # Try YAML parsing first if available
+            if yaml:
+                try:
+                    compose_data = yaml.safe_load(content)
+                    if isinstance(compose_data, dict) and 'services' in compose_data:
+                        for service_name, service_config in compose_data['services'].items():
+                            if isinstance(service_config, dict) and 'ports' in service_config:
+                                service_ports = service_config['ports']
+                                if isinstance(service_ports, list):
+                                    for port_mapping in service_ports:
+                                        if isinstance(port_mapping, str):
+                                            # Parse "host:container" format
+                                            if ':' in port_mapping:
+                                                host_port = port_mapping.split(':')[0]
+                                                try:
+                                                    ports.append(int(host_port))
+                                                except ValueError:
+                                                    pass
+                    return ports
+                except yaml.YAMLError:
+                    pass  # Fall back to regex parsing
+            
+            # Fallback: regex parsing for port mappings
+            # Look for patterns like "4001:5432" or "- 4001:5432"
+            port_patterns = [
+                r'["\']?(\d+):\d+["\']?',  # "4001:5432" or 4001:5432
+                r'-\s+["\']?(\d+):\d+["\']?',  # - "4001:5432"
+            ]
+            
+            for pattern in port_patterns:
+                matches = re.findall(pattern, content)
+                for match in matches:
+                    try:
+                        ports.append(int(match))
+                    except ValueError:
+                        pass
+        
+        except Exception as e:
+            # Silently ignore file read errors
+            pass
+        
+        return sorted(list(set(ports)))  # Remove duplicates and sort
+    
+    def _format_port_ranges(self, ports):
+        """Format a list of ports into readable ranges"""
+        if not ports:
+            return ""
+        
+        ports = sorted(ports)
+        ranges = []
+        start = ports[0]
+        end = ports[0]
+        
+        for port in ports[1:]:
+            if port == end + 1:
+                end = port
+            else:
+                if start == end:
+                    ranges.append(str(start))
+                else:
+                    ranges.append(f"{start}-{end}")
+                start = end = port
+        
+        # Add the last range
+        if start == end:
+            ranges.append(str(start))
+        else:
+            ranges.append(f"{start}-{end}")
+        
+        return ", ".join(ranges)
+    
     def run(self):
         """Main CLI entry point"""
         parser = argparse.ArgumentParser(
@@ -245,6 +455,8 @@ Examples:
   %(prog)s check-ports Alex           # Check Alex's port assignment
   %(prog)s system-status              # Show system overview
   %(prog)s security-check             # Run security validation
+  %(prog)s scan-usage                 # Scan actual port usage
+  %(prog)s scan-usage --detailed      # Detailed usage report
             """
         )
         
@@ -263,6 +475,10 @@ Examples:
         # Security check command
         subparsers.add_parser('security-check', help='Run system security validation')
         
+        # Port usage scanning command
+        usage_parser = subparsers.add_parser('scan-usage', help='Scan actual port usage across all students')
+        usage_parser.add_argument('--detailed', '-d', action='store_true', help='Show detailed project and port information')
+        
         args = parser.parse_args()
         
         if not args.command:
@@ -278,6 +494,8 @@ Examples:
                 self.show_system_status()
             elif args.command == 'security-check':
                 self.validate_system_security()
+            elif args.command == 'scan-usage':
+                self.scan_port_usage(detailed=args.detailed)
         except Exception as e:
             if "not found" in str(e).lower():
                 print(f"Error: {e}")

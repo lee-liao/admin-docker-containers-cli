@@ -26,6 +26,12 @@ python admin-cli.py system-status
 
 # Run security validation
 python admin-cli.py security-check
+
+# Scan actual port usage
+python admin-cli.py scan-usage
+
+# Detailed usage report
+python admin-cli.py scan-usage --detailed
 ```
 
 ## 📋 Available Commands
@@ -37,6 +43,7 @@ python admin-cli.py security-check
 ### System Administration  
 - **system-status** - Show overall system status and statistics
 - **security-check** - Run system security validation
+- **scan-usage** - Scan actual port usage across all students
 
 ## 🔧 Admin Tools
 

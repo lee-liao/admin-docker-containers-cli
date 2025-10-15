@@ -64,6 +64,38 @@ Run comprehensive system security validation.
 python admin-cli.py security-check
 ```
 
+### scan-usage
+Scan actual port usage across all students' dockeredServices directories.
+
+```bash
+python admin-cli.py scan-usage
+```
+
+**Output:**
+```
+🔍 Scanning Port Usage Across All Students
+==================================================
+📁 Found 3 active students
+🔌 Total ports used: 15
+📊 Total ports allocated: 600
+📈 Usage rate: 2.5%
+
+👤 Alex
+   📁 Path: /home/Alex/dockeredServices
+   📊 Usage: 5/200 ports (2.5%)
+   📋 Projects: 2
+
+👤 Emma  
+   📁 Path: /home/Emma/dockeredServices
+   📊 Usage: 10/202 ports (5.0%)
+   📋 Projects: 3
+```
+
+**Detailed Report:**
+```bash
+python admin-cli.py scan-usage --detailed
+```
+
 ## Usage Examples
 
 ### Daily Admin Tasks
@@ -76,6 +108,9 @@ python admin-cli.py check-ports StudentName
 
 # Weekly security audit
 python admin-cli.py security-check
+
+# Check actual port usage
+python admin-cli.py scan-usage
 ```
 
 ### Troubleshooting Student Issues
@@ -85,4 +120,7 @@ python admin-cli.py check-ports Alex
 
 # List all students to check for conflicts
 python admin-cli.py list-students
+
+# Check actual usage vs allocation
+python admin-cli.py scan-usage --detailed
 ```
